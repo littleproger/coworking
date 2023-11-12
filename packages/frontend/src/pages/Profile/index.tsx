@@ -22,8 +22,8 @@ const EditIcon = (props:SvgIconProps) => (
   </svg>
 );
 
-const DeleteIcon = () => (
-  <svg viewBox="0 0 1024 1024" className="profile-icon13">
+const DeleteIcon = (props:any) => (
+  <svg style={{ cursor: 'pointer' }} onClick={props.onClick} viewBox="0 0 1024 1024" className="profile-icon13">
     <path d="M810 170v86h-596v-86h148l44-42h212l44 42h148zM256 810v-512h512v512q0 34-26 60t-60 26h-340q-34 0-60-26t-26-60z"></path>
   </svg>
 );
@@ -42,14 +42,20 @@ const DeclineButton = (props: DeclineButton) => {
 
 type CoworkingItem = Coworking & {
   showModal: (it:Modals) => void;
+  refetch: () => void;
 }
-const CoworkingItem = ({ showModal, ...coworking }: CoworkingItem) => {
+const CoworkingItem = ({ showModal, refetch, ...coworking }: CoworkingItem) => {
+  const removeCoworking = () => {
+    feathersClient.service('coworkings').remove(coworking._id);
+    refetch();
+  };
+
   return (
     <li className="list-item">
       <span>{coworking.title} <em>{coworking.location}</em></span>
       <div className="profile-container11">
         <EditIcon onClick={() => showModal({ type: 'addOrEdit', data:coworking })} style={{ cursor: 'pointer' }}/>
-        <DeleteIcon/>
+        <DeleteIcon onClick={removeCoworking}/>
       </div>
     </li>
   );
@@ -144,7 +150,10 @@ export const Profile = () => {
     return regExp.test(it.title) || regExp.test(it.location);
   });
 
-  const closeModal = () =>setModal({ type:'', data:undefined });
+  const closeModal = () =>{
+    refetch();
+    setModal({ type:'', data: undefined });
+  };
 
   return (
     <div className="profile-container">
@@ -199,9 +208,9 @@ export const Profile = () => {
             <ul className="profile-ul list">
               {isLoading ? (
                 <p>Loading ...</p>
-              ) : coworkings.map(it=>(
-                <CoworkingItem {...it} showModal={setModal}/>
-              ))}
+              ) : coworkings.length ? coworkings.map(it=>(
+                <CoworkingItem {...it} showModal={setModal} refetch={refetch}/>
+              )) : <p style={{ color: 'lightgray' }}>Nothing there.</p>}
             </ul>
           </div>
           <div className="profile-container15">

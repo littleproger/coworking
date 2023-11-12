@@ -18,7 +18,6 @@ const images = [
 ];
 
 export const Gallery = () => {
-  // return <p>Text</p>;
   return <ImageGallery
     items={images}
     showPlayButton={false}

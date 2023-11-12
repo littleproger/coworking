@@ -37,12 +37,8 @@ export const WithHeader = ({ children }:any) => {
           <div className="landing-page-right-side">
             <div className="landing-page-links-container">
               <Link to={route('/home')} className="landing-page-text">Home</Link>
-              <Link to={route('/profile')} className="landing-page-text01">
-                Profile
-              </Link>
-              <Link to={route('/coworking')} className="landing-page-text04">Co-workings</Link>
             </div>
-            <Link to={route('/coworking')} className="landing-page-link">
+            <Link to={route('/coworkings')} className="landing-page-link">
               <SolidButton>Explore coworkings</SolidButton>
             </Link>
             <Link to={route('/profile')} className="landing-page-profile">
