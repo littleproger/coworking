@@ -1,0 +1,22 @@
+{
+  "name": "@coworking/root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "hoist": "lerna bootstrap --hoist",
+    "hoist:prune": "rm -rf ./node_modules && lerna clean --yes && npm run hoist",
+    "api:dev": "npm run dev --prefix ./packages/backend",
+    "api:build": "npm run build --prefix ./packages/backend",
+    "frontend:dev": "npm run dev --prefix ./packages/frontend",
+    "frontend:build": "npm run build --prefix ./packages/frontend",
+    "common:build": "npm run build --prefix ./packages/common",
+    "common:build:watch": "npm run build:watch --prefix ./packages/common"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lerna": "4.0.0"
+  },
+  "devDependencies": {}
+}

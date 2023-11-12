@@ -1,0 +1,22 @@
+.list-button-container {
+  width: auto;
+  height: auto;
+  display: flex;
+  position: relative;
+  align-items: center;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.list-button-button {
+  width: 30px;
+  height: 30px;
+  padding: 0px;
+  box-shadow: 2px 2px 1px 0px #d4d4d4;
+  transition: 0.3s;
+  border-width: 0px;
+  background-color: #fca311;
+}
+.list-button-button:hover {
+  background-color: #FFAE09;
+}
+
