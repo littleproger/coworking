@@ -3,7 +3,8 @@ export type WithSearchParams<T extends string> = T | `${T}?${string}`;
 
 export type Route = '/'
   | '/profile'
-  | '/coworking'
+  | '/coworkings'
+  | '/coworkings/:coworkingId'
   | '/home'
   | '/sign-in'
 

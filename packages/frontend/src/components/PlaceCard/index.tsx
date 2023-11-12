@@ -1,14 +1,17 @@
+import { Coworking } from '@coworking/common/dist/services/coworking';
+import { Link } from '@mui/material';
 import OutlineButton from '../OutlineButton';
 import './place-card.css';
 
-interface PlaceCardProps {
+type PlaceCardProps = {
   image: string;
   image_alt: string;
   city: string;
   description: string;
-}
+} & Coworking;
 
 const PlaceCard = (props: PlaceCardProps) => {
+
   return (
     <div className="place-card-container">
       <img
@@ -18,8 +21,10 @@ const PlaceCard = (props: PlaceCardProps) => {
       />
       <div className="place-card-container1">
         <span className="place-card-text">{props.city}</span>
-        <span className="place-card-text1">{props.description}</span>
-        <OutlineButton text="Discover place"/>
+        <div className="place-card-text1" dangerouslySetInnerHTML={{ __html: props.description }} />
+        <Link href={`/coworkings/${props._id}`}>
+          <OutlineButton text="Discover place" style={{ cursor: 'pointer' }}/>
+        </Link>
       </div>
     </div>
   );

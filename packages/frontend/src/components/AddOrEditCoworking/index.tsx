@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Modal from 'react-modal';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import {
@@ -22,6 +22,7 @@ import { BACKEND_URL } from '../../constants';
 import { feathersClient } from '../../feathersClient';
 import { useAppSelector } from '../../redux/hooks';
 import * as redux from '../../redux';
+import { FormLabel } from '@mui/material';
 
 
 const benefitOptions = [
@@ -43,6 +44,7 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
       ...data,
       collageImages: data?.collageImages || [],
       benefits: data?.benefits || [],
+      description: '',
     },
   });
 
@@ -58,6 +60,14 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
     control,
     name: 'collageImages',
   });
+
+  const resetAll = () => {
+    reset({
+      ...data,
+      collageImages: data?.collageImages || [],
+      benefits: data?.benefits || [],
+    });
+  }
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, cb: (res: any) => void) => {
     if (event?.target?.files?.length || 0 > 0) {
@@ -75,6 +85,7 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
         });
 
         const result = await response.json();
+
         cb(result);
       } catch (error) {
         console.error('Error:', error);
@@ -85,11 +96,21 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
 
   const onEdit = async (newData: Coworking) => {
     try {
+      // Convert benefits object to an array and append to FormData
+      const selectedBenefits = Object.entries(newData.benefits)
+        .filter(([_, value]) => value && typeof value !== 'boolean')
+        .map(([_, value]) => value);
+      const dataWithCorrectBenefits = {
+        ...data,
+        benefits: selectedBenefits,
+        description: watch('description'),
+      };
+  
       // Send the FormData to the server via fetch or axios
-      const response = await feathersClient.service('coworkings').update(data?._id, newData);
+      const response = await feathersClient.service('coworkings').update(data?._id, dataWithCorrectBenefits);
 
       const result = await response;
-      console.log(result, response);
+      resetAll();
       onRequestClose();
       // Handle the server response
     } catch (error) {
@@ -109,6 +130,7 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
       ...data,
       ownerId: user._id,
       benefits: selectedBenefits,
+      description: watch('description'),
     };
 
     try {
@@ -116,7 +138,7 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
       const response = await feathersClient.service('coworkings').create(dataWithCorrectBenefits);
 
       const result = await response;
-      console.log(result, response);
+      resetAll();
       onRequestClose();
       // Handle the server response
     } catch (error) {
@@ -126,11 +148,11 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
 
   // Function to integrate TinyMCE with react-hook-form
   const handleEditorChange = (content: string, editorName: keyof Coworking) => {
-    setValue(editorName, content);
+    setValue(editorName, content, { shouldValidate: false });
+    console.log(watch('description'))
   };
 
   const benefitsArray: Benefits[] = watch('benefits');
-  const mainImage = watch('mainImage');
 
   return (
     <Modal
@@ -167,72 +189,54 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
           {...register('title', { required: true })}
         />
 
-        {/* Rate selection */}
-        {/* <Controller
-          name="rate"
-          control={control}
-          rules={{ required: true }}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              select
-              label="Rate"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              SelectProps={{ native: true }}
-            >
-              {[0, 1, 2, 3, 4, 5].map(rate => (
-                <option key={rate} value={rate}>
-                  {rate}
-                </option>
-              ))}
-            </TextField>
-          )}
-        /> */}
-
-        <ListItem>
-          {mainImage ? <ListItemAvatar>
+        <div style={{ marginTop: 20, marginBottom: 20 }}>
+          <FormLabel>Main Image</FormLabel>
+          <label htmlFor="mainImage" style={{ cursor: 'pointer' }}>
             <Avatar
-              src={mainImage ? mainImage : undefined}
+              src={watch('mainImage') || data?.mainImage}
               variant="square"
               sx={{ width: 100, height: 100 }}
             />
-          </ListItemAvatar> :
-            <Button variant="contained" component="label">
-              Upload File
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={(e) => handleFileChange(e, (result) => {
-                  if (!result) return;
-                  setValue(`mainImage`, result.fileUrl, { shouldValidate: true });
-                })}
-              />
-            </Button>}
-          <ListItemSecondaryAction>
-            <IconButton edge="end" onClick={() => remove(index)}>
-              <DeleteIcon />
-            </IconButton>
-          </ListItemSecondaryAction>
-        </ListItem>
+          </label>
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            id="mainImage"
+            onChange={(e) => handleFileChange(e, (result) => {
+              if (!result?.fileUrl) return;
+              setValue('mainImage', result.fileUrl, { shouldValidate: true });
+            })}
+          />
+        </div>
 
         {/* Description - Simple TextField, replace with TinyMCE as needed */}
+        <FormLabel>Description</FormLabel>
         <Controller
           name="description"
           control={control}
           render={({ field }) => (
             <Editor
               {...field}
-              onEditorChange={(content) => handleEditorChange(content, 'description')}
+              onEditorChange={(content) =>{
+                handleEditorChange(content, 'description');
+              }}
+              onChange={(event) =>{
+                handleEditorChange(event.target.getContent(), 'description');
+              }}
+              // onBlur={(event) => handleEditorChange(event.target.getContent(), 'description')}
+              // onPaste={(event) => handleEditorChange(event.clipboardData?.getData('text') || '', 'description')}
               apiKey='dbygja01bqvo7658gyed658fmismga1ikmug4b22ou5qtkmb'
+              value={field.value}
+
               init={{
                 height: 500,
                 menubar: true,
                 plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
                 toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
                 file_picker_types: 'image',
+                paste_as_text: true,
+
                 file_picker_callback: (cb, value, meta) => {
                   if (meta.filetype === 'image') {
                     const input = document.createElement('input');
@@ -307,7 +311,7 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
           type="number"
           fullWidth
           margin="normal"
-          {...register('limitOfUsers', { required: true, min: 1 })}
+          {...register('limitOfUsers', { min: 1 })}
         />
 
         {/* Benefits checkboxes */}
@@ -339,7 +343,7 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
           fullWidth
           multiline
           margin="normal"
-          {...register('rules', { required: true })}
+          {...register('rules')}
         />
 
         <Button type="submit" variant="contained" color="primary">

@@ -3,8 +3,27 @@ import React from 'react';
 import SolidButton from '../../components/SolidButton';
 import PlaceCard from '../../components/PlaceCard';
 import './landing-page.css';
+import { useCallback } from 'react';
+import { feathersClient } from '../../feathersClient';
+import { useAppSelector } from '../../redux/hooks';
+import * as redux from '../../redux';
+import { useQuery } from '../../customHooks/useQuery';
+import { Coworking } from '@coworking/common/dist/services/coworking';
 
 export const Home = () => {
+  const user = useAppSelector(redux.storeParts.user.getData);
+
+  const getCoworkings = useCallback(async ()=> {
+    const response = await feathersClient.service('coworkings').find();
+
+    if (!response.data.length) {
+      throw new Error('Network response was not ok');
+    }
+    return response.data;
+  }, [user?._id]);
+
+  const { data, error, isLoading, refetch } = useQuery<Coworking[]>(getCoworkings);
+
   return (
     <div className="landing-page-container">
       <div className="landing-page-top-container">
@@ -12,19 +31,12 @@ export const Home = () => {
           <div className="landing-page-content-container">
             <h1 className="Heading landing-page-text12">Book an exclusive</h1>
             <h2 className="Subheading landing-page-subheading">
-              home for your personal travel
+              place for your work
             </h2>
             <span className="landing-page-text13">
               <span>
-                Each property is hand-picked,
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: ' ',
-                  }}
-                />
+                Where Innovation Meets Collaboration
               </span>
-              <br></br>
-              <span>personally visited and cannot be found elsewhere.</span>
             </span>
             <SolidButton>Explore coworkings</SolidButton>
           </div>
@@ -37,11 +49,14 @@ export const Home = () => {
         </h1>
         <span className="landing-page-text20">Recommended</span>
         <div className="landing-page-cards-container">
-          <PlaceCard
-            city="London"
-            image="https://images.unsplash.com/photo-1529655683826-aba9b3e77383?ixlib=rb-1.2.1&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;h=1000"
-          ></PlaceCard>
-          <PlaceCard
+          {data?.map(coworking=>(
+            <PlaceCard
+              {...coworking}
+              city={coworking.location}
+              image={coworking.mainImage}
+            />
+          ))}
+          {/* <PlaceCard
             city="Rome"
             image="https://images.unsplash.com/photo-1552832230-c0197dd311b5?ixlib=rb-1.2.1&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;h=1000"
           ></PlaceCard>
@@ -60,7 +75,7 @@ export const Home = () => {
           <PlaceCard
             city="Barcelona"
             image="https://images.unsplash.com/photo-1564221710304-0b37c8b9d729?ixlib=rb-1.2.1&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;h=1000"
-          ></PlaceCard>
+          ></PlaceCard> */}
         </div>
       </div>
       <div className="landing-page-footer">

@@ -48,10 +48,7 @@
     "space-infix-ops": [
       "error"
     ],
-    "semi": [
-      "error",
-      "always"
-    ],
+    "semi": "off",
     "comma-dangle": [
       "error",
       "always-multiline"
