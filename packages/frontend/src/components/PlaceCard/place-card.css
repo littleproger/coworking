@@ -1,8 +1,14 @@
 .place-card-container {
   width: 300px;
+  padding: 20px;
   display: flex;
   align-items: center;
   flex-direction: column;
+}
+.place-card-container:hover{
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  transition: all 0.25s;
 }
 .place-card-image {
   width: 100%;

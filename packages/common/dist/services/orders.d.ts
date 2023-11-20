@@ -1,4 +1,5 @@
-import { Benefits, Rate } from './coworking';
+import { Benefits, Coworking, Rate } from './coworking';
+import { User } from './users';
 export declare type Order = {
     _id?: string;
     clientId: string;
@@ -10,5 +11,8 @@ export declare type Order = {
     isPayed?: boolean;
     price?: string;
     orderedBenefits?: Benefits[];
+} & {
+    coworking: Coworking;
+    client: User;
 };
 //# sourceMappingURL=orders.d.ts.map

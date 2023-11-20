@@ -1,5 +1,6 @@
 import type { ObjectId } from 'mongodb';
-import { Benefits, Rate } from './coworking';
+import { Benefits, Coworking, Rate } from './coworking';
+import { User } from './users';
 
 export type Order = {
   _id?: string;
@@ -12,4 +13,7 @@ export type Order = {
   isPayed?: boolean;
   price?: string;
   orderedBenefits?: Benefits[];
+} & {
+  coworking: Coworking;
+  client: User;
 };

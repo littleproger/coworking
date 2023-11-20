@@ -3,7 +3,6 @@ import { Message } from '@coworking/common/dist/services/messages';
 import * as feathersAuthentication from '@feathersjs/authentication';
 import * as local from '@feathersjs/authentication-local';
 import { NotFound, BadRequest } from '@feathersjs/errors';
-import { HookContext } from '../../app';
 import { Paginated } from '@feathersjs/feathers';
 
 // Don't remove this comment. It's needed to format import lines nicely.
@@ -31,9 +30,32 @@ const appendCoworkingOwnerIdToMessage = async (context:any) => {
 
 const acceptBookingRequestMessage = async (context:any) => {
   if (!context.data || context.data.status !== 'accepted' ) return ;
-  const { coworkingId } = context.data || {};
+  const { coworkingId, clientId } = context.data || {};
 
-  if (!coworkingId) return context;
+  if (!coworkingId || !clientId) return context;
+
+  const { total, data:coworking } = await context.app.service('coworkings').find({
+    query: {
+      _id: coworkingId,
+      $limit: 1,
+    },
+  }) as Paginated<Coworking>;
+
+  if (!total || !coworking[0].ownerId) {
+    throw new NotFound('Coworking not found');
+  }
+
+  const { data: client } = await context.app.service('users').find({
+    query: {
+      _id: clientId,
+      $limit: 1,
+    },
+  }) as Paginated<Coworking>;
+
+  if (!client[0]) {
+    throw new NotFound('Client not found');
+  }
+
 
   // Request a page with no data and extract `page.total`
   const res = await context.app.service('orders').create({
@@ -42,6 +64,8 @@ const acceptBookingRequestMessage = async (context:any) => {
     ownerId: context.data.ownerId,
     startTime:  context.data.startTime,
     endTime:  context.data.endTime,
+    coworking: coworking[0],
+    client: client[0],
   }) as Message;
 
   console.log(res);

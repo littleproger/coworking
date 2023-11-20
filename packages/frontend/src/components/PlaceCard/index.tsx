@@ -1,4 +1,5 @@
 import { Coworking } from '@coworking/common/dist/services/coworking';
+import { Typography } from '@mui/material';
 import OutlineButton from '../OutlineButton';
 import './place-card.css';
 
@@ -12,20 +13,21 @@ type PlaceCardProps = {
 const PlaceCard = (props: PlaceCardProps) => {
 
   return (
-    <div className="place-card-container">
+    <a className="place-card-container" href={`/coworkings/${props._id}`} style={{ cursor: 'pointer' }} >
       <img
         alt={props.image_alt}
         src={props.image}
         className="place-card-image"
       />
       <div className="place-card-container1">
-        <span className="place-card-text">{props.city}</span>
+        <Typography textAlign="center" variant='h6' fontWeight="bold" className="place-card-text">{props.title}</Typography>
+        <Typography textAlign="center" className="place-card-text"><em>{props.city}</em></Typography>
         <div className="place-card-text1" dangerouslySetInnerHTML={{ __html: props.shortDescription }} />
         <a href={`/coworkings/${props._id}`} style={{ cursor: 'pointer' }}>
           <OutlineButton text="Discover place" style={{ cursor: 'pointer' }}/>
         </a>
       </div>
-    </div>
+    </a>
   );
 };
 

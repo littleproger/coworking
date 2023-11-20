@@ -15,9 +15,10 @@ import { route } from '../../routes';
 import './profile.css';
 import { Message } from '@coworking/common/dist/services/messages';
 import { User } from '@coworking/common/dist/services/users';
-import { Order } from '@coworking/common/dist/services/orders';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { OrdersModal } from '../../components/OrdersModal';
 
-type Modals = {type: 'editUser'} | {type:'addOrEdit', data?:Coworking}|{type: '', data?:Coworking};
+type Modals = {type: 'orders', id: string} | {type: 'editUser'} | {type:'addOrEdit', data?:Coworking} | {type: '', data?:Coworking};
 
 const EditIcon = (props:SvgIconProps) => (
   <svg {...props} style={{ cursor: 'pointer' }} viewBox="0 0 1024 1024" className="profile-icon11">
@@ -43,11 +44,15 @@ const DeclineButton = (props: DeclineButton) => {
   );
 };
 
-type CoworkingItem = Coworking & {
+type CoworkingItemProps = Coworking & {
   showModal: (it:Modals) => void;
   refetch: () => void;
+  onRequestClose: () => void;
+  onRequestOpen: () => void;
+  modal: Modals;
 }
-const CoworkingItem = ({ showModal, refetch, ...coworking }: CoworkingItem) => {
+const CoworkingItem = ({ showModal, refetch, onRequestClose, onRequestOpen, modal, ...coworking }: CoworkingItemProps) => {
+  if (!coworking._id) return null;
   const removeCoworking = () => {
     feathersClient.service('coworkings').remove(coworking._id);
     refetch();
@@ -55,8 +60,14 @@ const CoworkingItem = ({ showModal, refetch, ...coworking }: CoworkingItem) => {
 
   return (
     <li className="list-item">
+      {modal.type === 'orders' && coworking._id === modal.id && <OrdersModal
+        isOpen={coworking._id === modal.id}
+        onRequestClose={onRequestClose}
+        coworkingId={coworking._id}
+      />}
       <span>{coworking.title} <em>{coworking.location}</em></span>
       <div className="profile-container11">
+        <VisibilityIcon onClick={onRequestOpen} style={{ cursor: 'pointer' }}/>
         <EditIcon onClick={() => showModal({ type: 'addOrEdit', data:coworking })} style={{ cursor: 'pointer' }}/>
         <DeleteIcon onClick={removeCoworking}/>
       </div>
@@ -64,16 +75,16 @@ const CoworkingItem = ({ showModal, refetch, ...coworking }: CoworkingItem) => {
   );
 };
 
-const OrdersItem = () => {
-  return (
-    <li className="list-item">
-      <span>Text</span>
-      <div className="profile-container19">
-        <DeleteIcon/>
-      </div>
-    </li>
-  );
-};
+// const OrdersItem = () => {
+//   return (
+//     <li className="list-item">
+//       <span>Text</span>
+//       <div className="profile-container19">
+//         <DeleteIcon/>
+//       </div>
+//     </li>
+//   );
+// };
 
 const getTitleForMyNotification = (message:Message, coworking:Coworking) => {
   switch (message.status){
@@ -251,17 +262,6 @@ export const Profile = () => {
   const { data, error, isLoading, refetch } = useQuery<Coworking>(getCoworkings);
   const { data: messages, error: messagesError, isLoading: messagesIsLoading, refetch: refetchMessages } = useQuery<Message>(getMessages, listenCreatedMessages);
 
-  const getOrders = useCallback(async ()=> {
-    const response = await feathersClient.service('orders').find({ query:{
-      coworkingId: { $in: data?.map(it=>it._id) },
-    } });
-
-    if (!response.data.length) {
-      throw new Error('Network response was not ok');
-    }
-    return response.data;
-  }, [user?._id]);
-  const { data: orders, error: ordersError, isLoading: ordersIsLoading, refetch: refetchOrders } = useQuery<Order>(getOrders);
 
   useEffect(()=>{
     refetch();
@@ -272,10 +272,6 @@ export const Profile = () => {
     feathersSocketClient.service('messages').on('updated', (message:any) => {
       console.log('Updated message received:', message);
       refetchMessages();
-    })
-    feathersSocketClient.service('orders').on('created', (message:any) => {
-      console.log('Added order', message);
-      refetchOrders();
     })
   }, [feathersSocketClient]);
 
@@ -298,8 +294,6 @@ export const Profile = () => {
     refetch();
     setModal({ type:'', data: undefined });
   };
-
-  console.log(orders)
 
   return (
     <div className="profile-container">
@@ -357,24 +351,16 @@ export const Profile = () => {
               {isLoading ? (
                 <p>Loading ...</p>
               ) : coworkings.length ? coworkings.map(it=>(
-                <CoworkingItem {...it} showModal={setModal} refetch={refetch}/>
+                <CoworkingItem
+                  {...it}
+                  showModal={setModal}
+                  refetch={refetch}
+                  modal={modal}
+                  onRequestClose={closeModal}
+                  onRequestOpen={()=>setModal({ type:'orders', id: it._id || '' })}
+                />
               )) : <p style={{ color: 'lightgray' }}>Nothing there.</p>}
             </ul>
-          </div>
-          <div className="profile-container15">
-            <div className="profile-container16">
-              <div className="profile-container17">
-                <span>Active by today</span>
-                <SolidButton
-                  className="solid-button-root-class-name4"
-                >See all orders</SolidButton>
-              </div>
-              <div className="profile-container18">
-                <ul className="profile-ul1 list">
-                  <OrdersItem />
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
         <div className="profile-container24">
@@ -385,9 +371,9 @@ export const Profile = () => {
             <ul className="profile-ul2 list">
               {messagesIsLoading ? (
                 <li>Loading ...</li>
-              ) : (messages?.length ? messages.reverse().map(message=>(
+              ) : messages?.length ? messages.reverse().map(message=>(
                 <RequestItem key={message._id} message={message} refetchMessages={refetchMessages}/>
-              )) : <p style={{ color: 'lightgray' }}>Nothing there.</p>)
+              )) : <p style={{ color: 'lightgray' }}>Nothing there.</p>
               }
             </ul>
           </div>

@@ -5,7 +5,6 @@ import * as storeParts from './storeParts';
 const store = configureStore({
   reducer: {
     user: storeParts.user.reducer,
-    scene: storeParts.scene.reducer,
   },
 });
 

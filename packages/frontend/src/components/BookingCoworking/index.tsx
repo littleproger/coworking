@@ -71,7 +71,7 @@ export const BookingDatePicker: React.FC = () => {
         anchorOrigin={{ vertical:'top', horizontal:'right' }}
       >
         <Alert onClose={handleClose} severity="success">
-          Booking notification has been successfully sent
+          Booking request has been successfully sent
         </Alert>
       </Snackbar>
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
