@@ -125,9 +125,6 @@ export const Sign:FC = () => {
     setSignType('signIn');
   };
 
-  
-  const isEmailError = Object.keys(error).includes('email') && error['email'];
-  const isPasswdError = Object.keys(error).includes('password') && error['password'];
   const isSignUp = signType === 'signUp';
   return (
     <div className="sign-container">

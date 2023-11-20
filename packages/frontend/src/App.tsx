@@ -5,7 +5,7 @@ import {
   Route,
 } from 'react-router-dom';
 
-import { feathersClient } from './feathersClient';
+import { feathersClient, feathersSocketClient } from './feathersClient';
 import { Signup } from './containers/Signup';
 import * as pages from './pages';
 import * as redux from './redux';
@@ -30,6 +30,7 @@ const App = () => {
         console.error('err', err);
         dispatch(redux.storeParts.user.logout());
       });
+    feathersSocketClient.reAuthenticate();
   }, [dispatch]);
 
   useEffect(() => {

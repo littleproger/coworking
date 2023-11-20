@@ -2,6 +2,7 @@ import { Coworking as CoworkingProps, ImageField } from '@coworking/common/dist/
 import { Typography } from '@mui/material';
 import { Stack } from '@mui/system';
 import { useCallback } from 'react';
+import { ReactImageGalleryItem } from 'react-image-gallery';
 import { useParams } from 'react-router-dom';
 import BenefitItem from '../../components/BenefitItem';
 import { BookingDatePicker } from '../../components/BookingCoworking';
@@ -10,10 +11,11 @@ import { useQuery } from '../../customHooks/useQuery';
 import { feathersClient } from '../../feathersClient';
 import './coworking.css';
 
-const getPhotosForGallery = (photos?: ImageField[]) => {
+const getPhotosForGallery = (photos?: ImageField[]):ReadonlyArray<ReactImageGalleryItem> => {
   if (!photos?.length) return [];
   return photos.map(photo => ({
-    src: photo.file || '',
+    original: photo.file || '',
+    thumbnail: photo.file || '',
     width: 4,
     height: 3,
     alt: 'Coworking photo',
@@ -67,10 +69,10 @@ export const Coworking = () => {
               </Stack>
             </div>
           </div>
-          <div style={{ marginTop: '100px' }}>
+          <Stack marginTop='100px' width="100%" paddingLeft="4em" paddingRight="4em">
             <Typography variant='h4' margin="0 0 30px 0">Gallery</Typography>
-            <Gallery />
-          </div>
+            <Gallery photos={photos} />
+          </Stack>
           <div className="coworking-container4">
             <div className="coworking-container5">
               <span className="coworking-text16">Benefits</span>

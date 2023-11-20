@@ -4,7 +4,6 @@ import { Application } from '../../declarations';
 import { Users } from './users.class';
 import hooks from './users.hooks';
 
-// Add this service to the service type index
 declare module '../../declarations' {
   interface ServiceTypes {
     'users': Users & ServiceAddons<any>;

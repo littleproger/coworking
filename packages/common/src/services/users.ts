@@ -1,6 +1,6 @@
 import type { ObjectId } from 'mongodb';
 
-export type User= {
+export type User = {
   _id?: string;
   email: string;
   name: string;

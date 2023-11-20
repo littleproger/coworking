@@ -9,10 +9,12 @@ import { AddOrEditCoworking } from '../../components/AddOrEditCoworking';
 import SolidButton from '../../components/SolidButton';
 import { UserEditModal } from '../../components/UserEditModal';
 import { useQuery } from '../../customHooks/useQuery';
-import { feathersClient } from '../../feathersClient';
+import { feathersClient, feathersSocketClient, listenCreatedMessages } from '../../feathersClient';
 import { useAppSelector } from '../../redux/hooks';
 import { route } from '../../routes';
 import './profile.css';
+import { Message } from '@coworking/common/dist/services/messages';
+import { User } from '@coworking/common/dist/services/users';
 
 type Modals = {type: 'editUser'} | {type:'addOrEdit', data?:Coworking}|{type: '', data?:Coworking};
 
@@ -72,34 +74,59 @@ const OrdersItem = () => {
   );
 };
 
-const RequestItem = () => {
+const RequestItem = ({ message, refetchMessages }: {message:Message, refetchMessages:()=>void}) => {
+  const user = useAppSelector(redux.storeParts.user.getData);
+  const getClient = useCallback(async ()=> {
+    const response = await feathersClient.service('users').find({ query:{
+      _id: message?.clientId,
+    } });
+
+    if (!response.data.length) {
+      throw new Error('Client response was not ok MmbfaEvA');
+    }
+    return response.data;
+  }, [message.clientId]);
+
+  const { data: client } = useQuery<User>(getClient);
+
+  if (!client?.length) return null;
+
+  const removeRequest = async () => {
+    const response = await feathersClient.service('messages').remove(message._id);
+
+    if (!response) {
+      throw new Error('Client response was not ok TDgypxlH');
+    }
+    refetchMessages();
+  }
+
+  const isItMyMessage = user?._id === message.clientId;
+
   return (
     <li className="profile-li09 list-item">
       <div className="profile-container27">
         <span>
-          <span className="profile-text29">Name Surname </span>
+          <span className="profile-text29">{client[0].name} </span>
           <br className="profile-text30"></br>
           <span className="profile-text31">
-                      Phone: +3809712345678
+            {client[0].phone}
           </span>
           <br className="profile-text32"></br>
           <span className="profile-text33">
-                      Email: smth@gmail.com
+            {client[0].email}
           </span>
           <br></br>
         </span>
         <span>
-                    Lorem ipsum dolor sit amet consectetur adipiscing elit, arcu
-                    mus nullam curae mauris pellentesque, nec laoreet convallis
-                    dignissim tortor risus.
+          {message.message}
         </span>
       </div>
-      <div className="profile-container28">
+      {!isItMyMessage && <div className="profile-container28">
         <SolidButton
           className="solid-button-root-class-name3"
         >Accept</SolidButton>
-        <DeclineButton text="Decline" onClick={console.log}/>
-      </div>
+        <DeclineButton text="Decline" onClick={removeRequest}/>
+      </div>}
     </li>
   );
 };
@@ -129,10 +156,26 @@ export const Profile = () => {
     return response.data;
   }, [user?._id]);
 
-  const { data, error, isLoading, refetch } = useQuery<Coworking[]>(getCoworkings);
+  const getMessages = useCallback(async ()=> {
+    const response = await feathersClient.service('messages').find({ query:{
+      $or: [{ ownerId: user?._id }, { clientId: user?._id }],
+    } });
+
+    if (!response.data.length) {
+      throw new Error('Network response was not ok');
+    }
+    return response.data;
+  }, [user?._id]);
+
+  const { data, error, isLoading, refetch } = useQuery<Coworking>(getCoworkings);
+  const { data: messages, error: messagesError, isLoading: messagesIsLoading, refetch: refetchMessages } = useQuery<Message>(getMessages, listenCreatedMessages);
 
   useEffect(()=>{
     refetch();
+    feathersSocketClient.service('messages').on('removed', (message:any) => {
+      console.log('Removed message received:', message);
+      refetchMessages();
+    })
   }, []);
 
   const editProfile = () => {
@@ -235,7 +278,12 @@ export const Profile = () => {
           </div>
           <div className="profile-container26">
             <ul className="profile-ul2 list">
-              <RequestItem />
+              {messagesIsLoading ? (
+                <p>Loading ...</p>
+              ) : messages?.length ? messages.map(message=>(
+                <RequestItem key={message._id} message={message} refetchMessages={refetchMessages}/>
+              )) : <p style={{ color: 'lightgray' }}>Nothing there.</p>
+              }
             </ul>
           </div>
         </div>

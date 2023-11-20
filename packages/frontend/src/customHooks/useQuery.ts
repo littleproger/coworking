@@ -1,39 +1,39 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
 type QueryResult<T> = {
-  data: T | null;
+  data: T[] | null; // Assuming the data is an array
   error: Error | null;
   isLoading: boolean;
-  refetch: () => void; // Add a refetch function to the return type
+  refetch: () => void;
 };
 
-type QueryFunction<T> = () => Promise<T>;
+type QueryFunction<T> = () => Promise<T[]>;
+type QueryFunctionListener<T> = (updateFn: (newData: T) => void) => () => void;
 
-export const useQuery = <T>(queryFn: QueryFunction<T>): QueryResult<T> => {
-  const [data, setData] = useState<T | null>(null);
+export const useQuery = <T>(
+  queryFn: QueryFunction<T>,
+  queryFnListener?: QueryFunctionListener<T>, // Optional listener function
+): QueryResult<T> => {
+  const [data, setData] = useState<T[] | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const fetchCountRef = useRef(0); // Use a ref to track fetch count
+  const fetchCountRef = useRef(0);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    const fetchCount = ++fetchCountRef.current; // Increment fetch count
+    const fetchCount = ++fetchCountRef.current;
 
     try {
       const result = await queryFn();
-      // Only update state if fetch count matches current count (latest fetch)
       if (fetchCount === fetchCountRef.current) {
         setData(result);
-        setError(null);
       }
     } catch (err) {
-      // Only update state if fetch count matches current count (latest fetch)
       if (fetchCount === fetchCountRef.current) {
         setError(err as Error);
       }
     } finally {
-      // Only update loading state if fetch count matches current count (latest fetch)
       if (fetchCount === fetchCountRef.current) {
         setIsLoading(false);
       }
@@ -41,10 +41,22 @@ export const useQuery = <T>(queryFn: QueryFunction<T>): QueryResult<T> => {
   }, [queryFn]);
 
   useEffect(() => {
-    fetchData(); // Fetch data on mount and when queryFn changes
+    fetchData();
   }, [fetchData]);
 
-  // Use a callback to return a stable reference to the refetch function
+  useEffect(() => {
+    if (queryFnListener) {
+      const unsubscribe = queryFnListener(newData => {
+        setData(prevData => {
+          // Assuming the data is an array and you want to append new data
+          return prevData ? [...prevData, newData] : [newData];
+        });
+      });
+
+      return unsubscribe; // Return the cleanup function
+    }
+  }, [queryFnListener]);
+
   const refetch = useCallback(() => {
     fetchData();
   }, [fetchData]);
