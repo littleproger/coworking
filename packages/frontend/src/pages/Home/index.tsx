@@ -51,31 +51,12 @@ export const Home = () => {
         <div className="landing-page-cards-container">
           {data?.map(coworking=>(
             <PlaceCard
+              key={coworking._id}
               {...coworking}
               city={coworking.location}
               image={coworking.mainImage}
             />
           ))}
-          {/* <PlaceCard
-            city="Rome"
-            image="https://images.unsplash.com/photo-1552832230-c0197dd311b5?ixlib=rb-1.2.1&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;h=1000"
-          ></PlaceCard>
-          <PlaceCard
-            city="Cluj-Napoca"
-            image="https://images.unsplash.com/photo-1513342791620-b106dc487c94?ixlib=rb-1.2.1&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;h=1000"
-          ></PlaceCard>
-          <PlaceCard
-            city="Paris"
-            image="https://images.unsplash.com/photo-1551634979-2b11f8c946fe?ixlib=rb-1.2.1&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;h=1000"
-          ></PlaceCard>
-          <PlaceCard
-            city="Amsterdam"
-            image="https://images.unsplash.com/photo-1585211969224-3e992986159d?ixlib=rb-1.2.1&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;h=1000"
-          ></PlaceCard>
-          <PlaceCard
-            city="Barcelona"
-            image="https://images.unsplash.com/photo-1564221710304-0b37c8b9d729?ixlib=rb-1.2.1&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;h=1000"
-          ></PlaceCard> */}
         </div>
       </div>
       <div className="landing-page-footer">

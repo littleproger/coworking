@@ -16,6 +16,7 @@ export type Coworking= {
   rate: Rate;
   title: string;
   mainImage: string;
+  shortDescription: string;
   //TinyMCE
   description: string;
   collageImages: ImageField[];

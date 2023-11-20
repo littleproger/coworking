@@ -2,7 +2,7 @@ import { Coworking } from '@coworking/common/dist/services/coworking';
 import { Message } from '@coworking/common/dist/services/messages';
 import * as feathersAuthentication from '@feathersjs/authentication';
 import * as local from '@feathersjs/authentication-local';
-import { NotFound } from '@feathersjs/errors';
+import { NotFound, BadRequest } from '@feathersjs/errors';
 import { HookContext } from '../../app';
 import { Paginated } from '@feathersjs/feathers';
 
@@ -29,6 +29,29 @@ const appendCoworkingOwnerIdToMessage = async (context:any) => {
   return { ...context, data: Object.assign({ ownerId: data[0].ownerId }, context.data) };
 };
 
+const acceptBookingRequestMessage = async (context:any) => {
+  if (!context.data || context.data.status !== 'accepted' ) return ;
+  const { coworkingId } = context.data || {};
+
+  if (!coworkingId) return context;
+
+  // Request a page with no data and extract `page.total`
+  const res = await context.app.service('orders').create({
+    clientId: context.data.clientId,
+    coworkingId: context.data.coworkingId,
+    ownerId: context.data.ownerId,
+    startTime:  context.data.startTime,
+    endTime:  context.data.endTime,
+  }) as Message;
+
+  console.log(res);
+  if (!res || !res.coworkingId) {
+    throw new BadRequest('Cannot accept request 6e7ZVBZj');
+  }
+
+  return context;
+};
+
 export default {
   before: {
     all: [],
@@ -38,7 +61,9 @@ export default {
       appendCoworkingOwnerIdToMessage,
       hashPassword('password'),
     ],
-    update: [ hashPassword('password'),  authenticate('jwt') ],
+    update: [ 
+      acceptBookingRequestMessage,
+      hashPassword('password'),  authenticate('jwt') ],
     patch: [ hashPassword('password'),  authenticate('jwt') ],
     remove: [ authenticate('jwt') ],
   },

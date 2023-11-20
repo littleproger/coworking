@@ -53,26 +53,26 @@ export const Coworking = () => {
                 {(data?.title || 'Untitled title')} <br />
                 <em style={{ fontSize: '20px' }}>{data?.location}</em>
               </span>
-              <Stack flexDirection="row-reverse" gap={3}>
-                <Stack width="30%" flex={0.5} style={{ background: 'white', borderRadius: '10px', padding: '20px 10px' }}>
+              <Stack flexDirection="row-reverse" gap={3} width='100%'>
+                <Stack width="30%" height="500px" flex={0.5} style={{ background: 'white', borderRadius: '10px', padding: '20px 10px' }}>
                   <BookingDatePicker />
                 </Stack>
                 <Stack flex={1}>
-                  <span className="coworking-text13">
-                    <span
+                  <div className="coworking-text13">
+                    <div
                       dangerouslySetInnerHTML={{
                         __html: data?.description ?? ' ',
                       }}
                     />
-                  </span>
+                  </div>
                 </Stack>
               </Stack>
             </div>
           </div>
-          <Stack marginTop='100px' width="100%" paddingLeft="4em" paddingRight="4em">
+          {!!photos.length && <Stack marginTop='100px' width="100%" paddingLeft="4em" paddingRight="4em">
             <Typography variant='h4' margin="0 0 30px 0">Gallery</Typography>
             <Gallery photos={photos} />
-          </Stack>
+          </Stack>}
           <div className="coworking-container4">
             <div className="coworking-container5">
               <span className="coworking-text16">Benefits</span>

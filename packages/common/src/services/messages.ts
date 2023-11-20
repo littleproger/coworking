@@ -11,4 +11,5 @@ export type Message= {
   price?: string;
   message?: string;
   rejected?: true;
+  status: 'sent' | 'rejected' | 'accepted';
 };

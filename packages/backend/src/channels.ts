@@ -50,18 +50,24 @@ export default function(app: Application): void {
       //TODO Change texts for more readable
       return app.channel(`userIds/${message.ownerId}`).send(message);
     });
-    app.service('messages').publish('removed', (message:Message) => {
-      const { _id, ownerId, ...messageWithoutOwnerId } = message;
-      // app.service('messages').create({
-      //   ...messageWithoutOwnerId,
-      //   message: 'Reservation rejected',
-      // });
+    app.service('messages').publish('updated', (message:Message) => {
+      if (!message.ownerId || !message.clientId) return;
       //TODO Change texts for more readable
       return app.channel(`userIds/${message.clientId}`).send(message);
     });
-    // app.service('messages').publish('removed', (message) => {
-    //   console.log('removed', message);
-    //   return app.channel(`userIds/${message.clientId}`).send(message);
-    // });
+    app.service('messages').publish('removed', (message:Message) => {
+      const { _id, ownerId, ...messageWithoutOwnerId } = message;
+      app.service('messages').create({
+        ...messageWithoutOwnerId,
+        message: 'Reservation rejected',
+        status: 'rejected',
+      });
+      //TODO Change texts for more readable
+      return app.channel(`userIds/${message.clientId}`).send(message);
+    });
+    app.service('orders').publish('created', (order) => {
+      console.log('removed', order);
+      return app.channel(`userIds/${order.ownerId}`).send(order);
+    });
   }
 }

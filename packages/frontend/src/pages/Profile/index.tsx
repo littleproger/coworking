@@ -3,7 +3,7 @@ import * as redux from '../../redux';
 
 import { Coworking } from '@coworking/common/dist/services/coworking';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { SvgIconProps } from '@mui/material';
+import { Stack, SvgIconProps, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { AddOrEditCoworking } from '../../components/AddOrEditCoworking';
 import SolidButton from '../../components/SolidButton';
@@ -15,6 +15,7 @@ import { route } from '../../routes';
 import './profile.css';
 import { Message } from '@coworking/common/dist/services/messages';
 import { User } from '@coworking/common/dist/services/users';
+import { Order } from '@coworking/common/dist/services/orders';
 
 type Modals = {type: 'editUser'} | {type:'addOrEdit', data?:Coworking}|{type: '', data?:Coworking};
 
@@ -36,7 +37,7 @@ type DeclineButton = {
 }
 const DeclineButton = (props: DeclineButton) => {
   return (
-    <button onClick={props.onClick} className="profile-button1 button" style={{ cursor: 'pointer' }}>
+    <button onClick={props.onClick} className="profile-button1 button" style={{ cursor: 'pointer', background: 'transparent' }}>
       {props.text}
     </button>
   );
@@ -74,6 +75,56 @@ const OrdersItem = () => {
   );
 };
 
+const getTitleForMyNotification = (message:Message, coworking:Coworking) => {
+  switch (message.status){
+    case 'sent':
+      return (
+        <span>
+          <Typography variant='h6' color="gray">Your booking request has been successfully sent to {coworking.title} </Typography>
+          <Typography color="gray">
+            On location: <em>{coworking.location}</em>
+          </Typography>
+          <Typography color='gray'>
+            From <em>{message.startTime}</em>
+          </Typography>
+          <Typography color='gray'>
+            To <em>{message.endTime}</em>
+          </Typography>
+        </span>
+      )
+    case 'accepted':
+      return (
+        <span>
+          <Typography variant='h6' fontWeight='bold' color='green'>Your booking request of {coworking.title} has been successfully approved </Typography>
+          <Typography color='green'>
+            On location: <em>{coworking.location}</em>
+          </Typography>
+          <Typography color='green'>
+            From: <em>{message.startTime}</em>
+          </Typography>
+          <Typography color='green'>
+            To: <em>{message.endTime}</em>
+          </Typography>
+        </span>
+      )
+    case 'rejected':
+      return (
+        <span>
+          <Typography variant='h6' fontWeight='bold' color='red'>From manager of {coworking.title} </Typography>
+          <Typography color='red'>
+            On location: <em>{coworking.location}</em>
+          </Typography>
+          <Typography color='red'>
+            From: <em>{message.startTime}</em>
+          </Typography>
+          <Typography color='red'>
+            To: <em>{message.endTime}</em>
+          </Typography>
+        </span>
+      )
+  }
+}
+
 const RequestItem = ({ message, refetchMessages }: {message:Message, refetchMessages:()=>void}) => {
   const user = useAppSelector(redux.storeParts.user.getData);
   const getClient = useCallback(async ()=> {
@@ -89,10 +140,35 @@ const RequestItem = ({ message, refetchMessages }: {message:Message, refetchMess
 
   const { data: client } = useQuery<User>(getClient);
 
-  if (!client?.length) return null;
+  const getCoworking = useCallback(async ()=> {
+    const response = await feathersClient.service('coworkings').find({ query:{
+      _id: message?.coworkingId,
+    } });
+
+    if (!response.data.length) {
+      throw new Error('Coworking response was not ok Q6tsL7cX');
+    }
+    return response.data;
+  }, [message.clientId]);
+
+  const { data: coworking } = useQuery<Coworking>(getCoworking);
+
+  if (!client?.length || !coworking?.length) return null;
 
   const removeRequest = async () => {
     const response = await feathersClient.service('messages').remove(message._id);
+
+    if (!response) {
+      throw new Error('Client response was not ok TDgypxlH');
+    }
+    refetchMessages();
+  }
+
+  const acceptRequest = async () => {
+    const response = await feathersClient.service('messages').update(message._id, {
+      ...message,
+      status: 'accepted',
+    });
 
     if (!response) {
       throw new Error('Client response was not ok TDgypxlH');
@@ -105,25 +181,30 @@ const RequestItem = ({ message, refetchMessages }: {message:Message, refetchMess
   return (
     <li className="profile-li09 list-item">
       <div className="profile-container27">
-        <span>
-          <span className="profile-text29">{client[0].name} </span>
-          <br className="profile-text30"></br>
-          <span className="profile-text31">
-            {client[0].phone}
-          </span>
-          <br className="profile-text32"></br>
-          <span className="profile-text33">
-            {client[0].email}
-          </span>
-          <br></br>
-        </span>
-        <span>
-          {message.message}
-        </span>
+        {isItMyMessage ? (
+          getTitleForMyNotification(message, coworking[0])
+        ) : (
+          <div>
+            <Typography variant='h5' fontWeight="bold" color='#FCA311'>New request</Typography>
+            <Typography className="profile-text29">Name: {client[0].name} </Typography>
+
+            {client[0].phone && <Typography className="profile-text31">
+              Phone: {client[0].phone}
+            </Typography>}
+            
+            {client[0].email && <Typography className="profile-text33">
+              Email: {client[0].email}
+            </Typography>}
+          </div>
+        )}
+        {message.message && <Typography>
+          Message: {message.message}
+        </Typography>}
       </div>
       {!isItMyMessage && <div className="profile-container28">
         <SolidButton
           className="solid-button-root-class-name3"
+          onClick={acceptRequest}
         >Accept</SolidButton>
         <DeclineButton text="Decline" onClick={removeRequest}/>
       </div>}
@@ -158,7 +239,7 @@ export const Profile = () => {
 
   const getMessages = useCallback(async ()=> {
     const response = await feathersClient.service('messages').find({ query:{
-      $or: [{ ownerId: user?._id }, { clientId: user?._id }],
+      $or: [{ ownerId: user?._id, status: 'sent' }, { clientId: user?._id }],
     } });
 
     if (!response.data.length) {
@@ -170,13 +251,33 @@ export const Profile = () => {
   const { data, error, isLoading, refetch } = useQuery<Coworking>(getCoworkings);
   const { data: messages, error: messagesError, isLoading: messagesIsLoading, refetch: refetchMessages } = useQuery<Message>(getMessages, listenCreatedMessages);
 
+  const getOrders = useCallback(async ()=> {
+    const response = await feathersClient.service('orders').find({ query:{
+      coworkingId: { $in: data?.map(it=>it._id) },
+    } });
+
+    if (!response.data.length) {
+      throw new Error('Network response was not ok');
+    }
+    return response.data;
+  }, [user?._id]);
+  const { data: orders, error: ordersError, isLoading: ordersIsLoading, refetch: refetchOrders } = useQuery<Order>(getOrders);
+
   useEffect(()=>{
     refetch();
     feathersSocketClient.service('messages').on('removed', (message:any) => {
       console.log('Removed message received:', message);
       refetchMessages();
     })
-  }, []);
+    feathersSocketClient.service('messages').on('updated', (message:any) => {
+      console.log('Updated message received:', message);
+      refetchMessages();
+    })
+    feathersSocketClient.service('orders').on('created', (message:any) => {
+      console.log('Added order', message);
+      refetchOrders();
+    })
+  }, [feathersSocketClient]);
 
   const editProfile = () => {
     setModal({ type:'editUser' });
@@ -198,6 +299,8 @@ export const Profile = () => {
     setModal({ type:'', data: undefined });
   };
 
+  console.log(orders)
+
   return (
     <div className="profile-container">
       <div className="profile-container01">
@@ -217,12 +320,14 @@ export const Profile = () => {
             <span>Email: {user?.email}</span>
             <span>Phone: {user?.phone}</span>
           </div>
-          <EditIcon onClick={editProfile}/>
           <UserEditModal
             isOpen={modal.type === 'editUser'}
             onRequestClose={closeModal}
           />
-          <DeclineButton text="Log out" onClick={logOut}/>
+          <Stack flexDirection='row' gap={2}>
+            <EditIcon onClick={editProfile}/>
+            <DeclineButton text="Log out" onClick={logOut}/>
+          </Stack>
         </div>
       </div>
       <div className="profile-container06">
@@ -274,15 +379,15 @@ export const Profile = () => {
         </div>
         <div className="profile-container24">
           <div className="profile-container25">
-            <span className="profile-text27">Requests</span>
+            <span className="profile-text27">Notifications</span>
           </div>
           <div className="profile-container26">
             <ul className="profile-ul2 list">
               {messagesIsLoading ? (
-                <p>Loading ...</p>
-              ) : messages?.length ? messages.map(message=>(
+                <li>Loading ...</li>
+              ) : (messages?.length ? messages.reverse().map(message=>(
                 <RequestItem key={message._id} message={message} refetchMessages={refetchMessages}/>
-              )) : <p style={{ color: 'lightgray' }}>Nothing there.</p>
+              )) : <p style={{ color: 'lightgray' }}>Nothing there.</p>)
               }
             </ul>
           </div>

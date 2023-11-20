@@ -12,6 +12,8 @@ import * as redux from './redux';
 import { route } from './routes';
 import './app.css';
 import { WithHeader } from './containers/WithHeader';
+import { ThemeProvider } from '@mui/material/styles';
+import { theme } from './theme';
 
 const App = () => {
   const authenticated = redux.hooks.useAppSelector(redux.storeParts.user.getAuthenticated);
@@ -54,9 +56,11 @@ const App = () => {
     );
 
   return (
-    <Router>
-      {innerContent}
-    </Router>
+    <ThemeProvider theme={theme}>
+      <Router>
+        {innerContent}
+      </Router>
+    </ThemeProvider>
   );
 };
 

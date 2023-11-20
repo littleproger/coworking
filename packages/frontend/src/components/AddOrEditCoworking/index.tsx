@@ -102,6 +102,7 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
         .map(([_, value]) => value);
       const dataWithCorrectBenefits = {
         ...data,
+        ...newData,
         benefits: selectedBenefits,
         description: watch('description'),
       };
@@ -209,6 +210,14 @@ export const AddOrEditCoworking = ({ data, isOpen, onRequestClose }: Information
             })}
           />
         </div>
+
+        <TextField
+          label="Short Description for preview"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          {...register('shortDescription', { required: true })}
+        />
 
         {/* Description - Simple TextField, replace with TinyMCE as needed */}
         <FormLabel>Description</FormLabel>

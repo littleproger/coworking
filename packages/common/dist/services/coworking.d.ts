@@ -12,6 +12,7 @@ export declare type Coworking = {
     rate: Rate;
     title: string;
     mainImage: string;
+    shortDescription: string;
     description: string;
     collageImages: ImageField[];
     limitOfUsers: number;

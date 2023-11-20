@@ -44,6 +44,7 @@ export const BookingDatePicker: React.FC = () => {
       startTime: data.startDate.toISOString(), // or format as needed
       endTime: endTime.toISOString(), // or format as needed
       message: data.message || '',
+      status: 'sent',
     };
 
     const message = await feathersClient.service('messages').create(bookingDetails)

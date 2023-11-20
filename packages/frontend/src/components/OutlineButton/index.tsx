@@ -1,4 +1,4 @@
-import { Stack } from '@mui/material';
+import { Button, Stack } from '@mui/material';
 import { StackProps } from '@mui/system';
 import './outline-button.css';
 
@@ -8,9 +8,9 @@ interface OutlineButton {
 const OutlineButton = (props: OutlineButton & StackProps) => {
   return (
     <Stack className="outline-button-container" style={{ cursor:'pointer' }}>
-      <button className="outline-button-button button Button">
+      <Button variant='outlined' style={{ textDecoration: 'none' }}>
         {props.text}
-      </button>
+      </Button>
     </Stack>
   );
 };

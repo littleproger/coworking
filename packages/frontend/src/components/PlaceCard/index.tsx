@@ -1,5 +1,4 @@
 import { Coworking } from '@coworking/common/dist/services/coworking';
-import { Link } from '@mui/material';
 import OutlineButton from '../OutlineButton';
 import './place-card.css';
 
@@ -21,10 +20,10 @@ const PlaceCard = (props: PlaceCardProps) => {
       />
       <div className="place-card-container1">
         <span className="place-card-text">{props.city}</span>
-        <div className="place-card-text1" dangerouslySetInnerHTML={{ __html: props.description }} />
-        <Link href={`/coworkings/${props._id}`}>
+        <div className="place-card-text1" dangerouslySetInnerHTML={{ __html: props.shortDescription }} />
+        <a href={`/coworkings/${props._id}`} style={{ cursor: 'pointer' }}>
           <OutlineButton text="Discover place" style={{ cursor: 'pointer' }}/>
-        </Link>
+        </a>
       </div>
     </div>
   );
