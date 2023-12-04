@@ -50,6 +50,7 @@ const App = () => {
         <Route path={route('/sign-in')} element={<Signup />} />
         <Route path={route('/home')} element={<WithHeader><pages.Home /></WithHeader>} />
         <Route path={route('/profile')} element={<WithHeader><pages.Profile/></WithHeader>} />
+        <Route path={route('/coworkings')} element={<WithHeader><pages.Coworkings/></WithHeader>} />
         <Route path={route('/coworkings/:coworkingId')} element={<WithHeader><pages.Coworking/></WithHeader>} />
         <Route path="*" element={<pages.NotFound/>} />
       </Routes>

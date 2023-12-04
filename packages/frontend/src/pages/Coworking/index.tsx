@@ -6,6 +6,7 @@ import { ReactImageGalleryItem } from 'react-image-gallery';
 import { useParams } from 'react-router-dom';
 import BenefitItem from '../../components/BenefitItem';
 import { BookingDatePicker } from '../../components/BookingCoworking';
+import { CommentsSection } from '../../components/Comments';
 import { Gallery } from '../../components/Gallery';
 import { useQuery } from '../../customHooks/useQuery';
 import { feathersClient } from '../../feathersClient';
@@ -34,12 +35,16 @@ export const Coworking = () => {
     if (!response) {
       throw new Error('Network response was not ok 53fXf ');
     }
-    return response;
-  }, []);
+    return [response];
+  }, [coworkingId]);
 
   const { data, error, isLoading, refetch } = useQuery<CoworkingProps>(getCoworkings);
+  if (!data) return null;
 
-  const photos = getPhotosForGallery(data?.collageImages);
+
+  const coworking = data[0];
+
+  const photos = getPhotosForGallery(coworking?.collageImages);
 
   return (
     <div className="coworking-container">
@@ -50,8 +55,8 @@ export const Coworking = () => {
           <div className="coworking-container1">
             <div className="coworking-container3">
               <span className="coworking-text12" style={{ textAlign: 'center' }}>
-                {(data?.title || 'Untitled title')} <br />
-                <em style={{ fontSize: '20px' }}>{data?.location}</em>
+                {(coworking?.title || 'Untitled title')} <br />
+                <em style={{ fontSize: '20px' }}>{coworking?.location}</em>
               </span>
               <Stack flexDirection="row-reverse" gap={3} width='100%'>
                 <Stack width="30%" height="500px" flex={0.5} style={{ background: 'white', borderRadius: '10px', padding: '20px 10px' }}>
@@ -61,7 +66,7 @@ export const Coworking = () => {
                   <div className="coworking-text13">
                     <div
                       dangerouslySetInnerHTML={{
-                        __html: data?.description ?? ' ',
+                        __html: coworking?.description ?? ' ',
                       }}
                     />
                   </div>
@@ -74,16 +79,17 @@ export const Coworking = () => {
             <Gallery photos={photos} />
           </Stack>}
           <div className="coworking-container4">
-            <div className="coworking-container5">
+            {coworking?.benefits.length && <div className="coworking-container5">
               <span className="coworking-text16">Benefits</span>
               <Stack className="coworking-container6" flexDirection="row" flexWrap="wrap">
-                {data?.benefits.map(benefit => (
+                {coworking?.benefits.map(benefit => (
                   <BenefitItem key={benefit} className="benefit-item-root-class-name">{benefit}</BenefitItem>
                 ))}
               </Stack>
-            </div>
-            <div style={{ marginTop: '60px' }} dangerouslySetInnerHTML={{ __html: data?.rules || '' }} />
+            </div>}
+            {coworking?.rules && <div style={{ marginTop: '60px' }} dangerouslySetInnerHTML={{ __html: coworking?.rules || '' }} />}
           </div>
+          <CommentsSection coworkingId={coworkingId} />
         </>
       )}
     </div>

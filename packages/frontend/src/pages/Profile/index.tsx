@@ -17,6 +17,7 @@ import { Message } from '@coworking/common/dist/services/messages';
 import { User } from '@coworking/common/dist/services/users';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { OrdersModal } from '../../components/OrdersModal';
+import CircularProgress from '@mui/material/CircularProgress';
 
 type Modals = {type: 'orders', id: string} | {type: 'editUser'} | {type:'addOrEdit', data?:Coworking} | {type: '', data?:Coworking};
 
@@ -349,7 +350,7 @@ export const Profile = () => {
           <div className="profile-container10">
             <ul className="profile-ul list">
               {isLoading ? (
-                <p>Loading ...</p>
+                <CircularProgress />
               ) : coworkings.length ? coworkings.map(it=>(
                 <CoworkingItem
                   {...it}
@@ -370,7 +371,7 @@ export const Profile = () => {
           <div className="profile-container26">
             <ul className="profile-ul2 list">
               {messagesIsLoading ? (
-                <li>Loading ...</li>
+                <CircularProgress />
               ) : messages?.length ? messages.reverse().map(message=>(
                 <RequestItem key={message._id} message={message} refetchMessages={refetchMessages}/>
               )) : <p style={{ color: 'lightgray' }}>Nothing there.</p>

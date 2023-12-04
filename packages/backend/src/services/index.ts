@@ -4,6 +4,7 @@ import coworkings from './coworkings/coworkings.service';
 import uploads from './uploads/uploads.service';
 import messages from './messages/messages.service';
 import orders from './orders/orders.service';
+import comments from './comments/comments.service';
 // Don't remove this comment. It's needed to format import lines nicely.
 
 export default function (app: Application): void {
@@ -12,4 +13,5 @@ export default function (app: Application): void {
   app.configure(uploads);
   app.configure(messages);
   app.configure(orders);
+  app.configure(comments);
 }

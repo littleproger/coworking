@@ -76,10 +76,34 @@ const acceptBookingRequestMessage = async (context:any) => {
   return context;
 };
 
+const handleSearchQueries = async (context:any) => {
+  const { query } = context.params;
+
+  // Check if $or is specified in the query
+  if (query.$or && Array.isArray(query.$or)) {
+    query.$or = query.$or.map((condition:any) => {
+      // Transform each $search into $regex
+      return Object.keys(condition).reduce((acc, key) => {
+        if (condition[key].$regex) {
+          acc[key] = { 
+            $regex: new RegExp(condition[key].$regex, condition[key].$options || 'i'), 
+          };
+        } else {
+          // Keep other conditions as is
+          acc[key] = condition[key];
+        }
+        return acc;
+      }, {} as any);
+    });
+  }
+
+  return context;
+};
+
 export default {
   before: {
     all: [],
-    find: [ authenticate('jwt') ],
+    find: [ authenticate('jwt'), handleSearchQueries ],
     get: [ authenticate('jwt') ],
     create: [ 
       appendCoworkingOwnerIdToMessage,
